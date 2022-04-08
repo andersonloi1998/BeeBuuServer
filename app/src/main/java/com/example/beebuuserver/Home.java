@@ -12,6 +12,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.beebuuserver.Common.Common;
+import com.example.beebuuserver.Interface.ItemClickListener;
 import com.example.beebuuserver.Model.Category;
 import com.example.beebuuserver.ViewHolder.MenuViewHolder;
 import com.firebase.ui.database.FirebaseRecyclerAdapter;
@@ -19,6 +20,7 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AlertDialog;
@@ -148,7 +150,7 @@ public class Home extends AppCompatActivity
     private void uploadImage() {
         if(saveUri != null)
         {
-            ProgressDialog mDialog = new ProgressDialog(this);
+            final ProgressDialog mDialog = new ProgressDialog(this);
             mDialog.setMessage("Uploading...");
             mDialog.show();
 
@@ -202,6 +204,13 @@ public class Home extends AppCompatActivity
                 menuViewHolder.txtMenuName.setText(category.getName());
                 Picasso.with(getBaseContext()).load(category.getImage())
                         .into(menuViewHolder.imageView);
+
+                menuViewHolder.setItemClickListener(new ItemClickListener() {
+                    @Override
+                    public void onClick(View view, int position, boolean isLongClick) {
+
+                    }
+                });
             }
         };
         adapter.notifyDataSetChanged();//Refresh data if have data changed
@@ -245,5 +254,87 @@ public class Home extends AppCompatActivity
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    @Override
+    public boolean onContextItemSelected(@NonNull MenuItem item) {
+        if(item.getTitle().equals(Common.UPDATE)){
+            showUpdateDialog(adapter.getRef(item.getOrder()).getKey(),adapter.getItem(item.getOrder()));
+        }else if(item.getTitle().equals(Common.DELETE)){
+            deleteCategory(adapter.getRef(item.getOrder()).getKey());
+        }
+
+        return super.onContextItemSelected(item);
+    }
+
+    private void deleteCategory(String key) {
+        categories.child(key).removeValue();
+        Toast.makeText(this, "Item deleted !!!", Toast.LENGTH_SHORT).show();
+    }
+
+    private void showUpdateDialog(String key, Category item) {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(Home.this);
+        alertDialog.setTitle("Update category");
+        alertDialog.setMessage("Please fill full information");
+
+        LayoutInflater inflater = this.getLayoutInflater();
+        View add_menu_layout = inflater.inflate(R.layout.add_new_menu,null);
+
+        edtName = add_menu_layout.findViewById(R.id.edtName);
+        btnSelect = add_menu_layout.findViewById(R.id.btnSelect);
+        btnUpload = add_menu_layout.findViewById(R.id.btnUpload);
+
+        //Set default name
+        edtName.setText(item.getName());
+
+        //Event for button
+        btnSelect.setOnClickListener(view -> {
+            chooseImage();//Let user select image from gallery and save url of this image
+        });
+
+        btnUpload.setOnClickListener(view -> changeImage(item));
+
+        alertDialog.setView(add_menu_layout);
+        alertDialog.setIcon(R.drawable.ic_baseline_shopping_cart_24);
+
+        //Set button
+        alertDialog.setPositiveButton("YES", (dialogInterface, i) -> {
+            dialogInterface.dismiss();
+
+            //Update information
+            item.setName(edtName.getText().toString());
+            categories.child(key).setValue(item);
+        });
+        alertDialog.setNegativeButton("NO", (dialogInterface, i) -> dialogInterface.dismiss());
+        alertDialog.show();
+    }
+
+    private void changeImage(Category item) {
+        if(saveUri != null)
+        {
+            final ProgressDialog mDialog = new ProgressDialog(this);
+            mDialog.setMessage("Uploading...");
+            mDialog.show();
+
+            String imageName = UUID.randomUUID().toString();
+            StorageReference imageFolder = storageReference.child("images/"+imageName);
+            imageFolder.putFile(saveUri)
+                    .addOnSuccessListener(taskSnapshot -> {
+                        mDialog.dismiss();
+                        Toast.makeText(Home.this,"Uploaded!!",Toast.LENGTH_SHORT).show();
+                        imageFolder.getDownloadUrl().addOnSuccessListener(uri -> {
+                            //Set value for newCategory if image upload and get download link
+                            item.setImage(uri.toString());
+                        });
+                    })
+                    .addOnFailureListener(e -> {
+                        mDialog.dismiss();
+                        Toast.makeText(Home.this,""+e.getMessage(),Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnProgressListener(snapshot -> {
+                        double progress = (100.0 * snapshot.getBytesTransferred()/ snapshot.getTotalByteCount());
+                        mDialog.setMessage("Uploaded "+progress+"%");
+                    });
+        }
     }
 }
