@@ -139,7 +139,6 @@ public class Home extends AppCompatActivity
             if(newCategory != null)
             {
                 categories.push().setValue(newCategory);
-                Snackbar.make(drawer,"New category "+newCategory.getName()+" was added!",Snackbar.LENGTH_SHORT).show();
             }
         });
         alertDialog.setNegativeButton("NO", (dialogInterface, i) -> dialogInterface.dismiss());
@@ -306,6 +305,7 @@ public class Home extends AppCompatActivity
             //Update information
             item.setName(edtName.getText().toString());
             categories.child(key).setValue(item);
+
         });
         alertDialog.setNegativeButton("NO", (dialogInterface, i) -> dialogInterface.dismiss());
         alertDialog.show();

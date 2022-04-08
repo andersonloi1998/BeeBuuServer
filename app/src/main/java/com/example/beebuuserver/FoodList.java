@@ -1,5 +1,6 @@
 package com.example.beebuuserver;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -11,6 +12,7 @@ import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.RelativeLayout;
 import android.widget.Toast;
@@ -207,5 +209,102 @@ public class FoodList extends AppCompatActivity {
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
         startActivityForResult(Intent.createChooser(intent,"Select Picture"), Common.PICK_IMAGE_REQUEST);
+    }
+
+    @Override
+    public boolean onContextItemSelected(@NonNull MenuItem item) {
+        if(item.getTitle().equals(Common.UPDATE))
+        {
+            showUpdateFoodDialog(adapter.getRef(item.getOrder()).getKey(),adapter.getItem(item.getOrder()));
+        }
+        else if(item.getTitle().equals(Common.DELETE))
+        {
+            deleteFood(adapter.getRef(item.getOrder()).getKey());
+        }
+        return super.onContextItemSelected(item);
+    }
+
+    private void deleteFood(String key) {
+        foodList.child(key).removeValue();
+    }
+
+    private void showUpdateFoodDialog(String key, Food item) {
+        AlertDialog.Builder alertDialog = new AlertDialog.Builder(FoodList.this);
+        alertDialog.setTitle("Edit food");
+        alertDialog.setMessage("Please fill full information");
+
+        LayoutInflater inflater = this.getLayoutInflater();
+        View add_menu_layout = inflater.inflate(R.layout.add_new_food_layout,null);
+
+        edtName = add_menu_layout.findViewById(R.id.edtName);
+        edtDescription = add_menu_layout.findViewById(R.id.edtDescription);
+        edtPrice = add_menu_layout.findViewById(R.id.edtPrice);
+        edtDiscount = add_menu_layout.findViewById(R.id.edtDiscount);
+
+        //Set default value for view
+        edtName.setText(item.getName());
+        edtDescription.setText(item.getDescription());
+        edtPrice.setText(item.getPrice());
+        edtDiscount.setText(item.getDiscount());
+
+        btnSelect = add_menu_layout.findViewById(R.id.btnSelect);
+        btnUpload = add_menu_layout.findViewById(R.id.btnUpload);
+
+        //Event for button
+        btnSelect.setOnClickListener(view -> {
+            chooseImage();//Let user select image from gallery and save url of this image
+        });
+
+        btnUpload.setOnClickListener(view -> changeImage(item));
+
+        alertDialog.setView(add_menu_layout);
+        alertDialog.setIcon(R.drawable.ic_baseline_shopping_cart_24);
+
+        //Set button
+        alertDialog.setPositiveButton("YES", (dialogInterface, i) -> {
+            dialogInterface.dismiss();
+
+                //Update information
+                item.setName(edtName.getText().toString());
+                item.setDescription(edtDescription.getText().toString());
+                item.setPrice(edtPrice.getText().toString());
+                item.setDiscount(edtDiscount.getText().toString());
+
+                foodList.child(key).setValue(item);
+
+                Snackbar.make(rootLayout,"Food "+item.getName()+" was updated!",Snackbar.LENGTH_SHORT).show();
+
+        });
+        alertDialog.setNegativeButton("NO", (dialogInterface, i) -> dialogInterface.dismiss());
+        alertDialog.show();
+    }
+
+    private void changeImage(Food item) {
+        if(saveUri != null)
+        {
+            final ProgressDialog mDialog = new ProgressDialog(this);
+            mDialog.setMessage("Uploading...");
+            mDialog.show();
+
+            String imageName = UUID.randomUUID().toString();
+            StorageReference imageFolder = storageReference.child("images/"+imageName);
+            imageFolder.putFile(saveUri)
+                    .addOnSuccessListener(taskSnapshot -> {
+                        mDialog.dismiss();
+                        Toast.makeText(FoodList.this,"Uploaded!!",Toast.LENGTH_SHORT).show();
+                        imageFolder.getDownloadUrl().addOnSuccessListener(uri -> {
+                            //Set value for newCategory if image upload and get download link
+                            item.setImage(uri.toString());
+                        });
+                    })
+                    .addOnFailureListener(e -> {
+                        mDialog.dismiss();
+                        Toast.makeText(FoodList.this,""+e.getMessage(),Toast.LENGTH_SHORT).show();
+                    })
+                    .addOnProgressListener(snapshot -> {
+                        double progress = (100.0 * snapshot.getBytesTransferred()/ snapshot.getTotalByteCount());
+                        mDialog.setMessage("Uploaded "+progress+"%");
+                    });
+        }
     }
 }
