@@ -35,23 +35,19 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
-        <Button
-            android:id="@+id/btnSignUp"
-            android:text="SignUp"
-            android:textColor="@android:color/white"
-            android:layout_weight="1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_margin="8dp"/>
-
-        <Button
+        <info.hoang8f.widget.FButton
             android:id="@+id/btnSignIn"
             android:text="SignIn"
             android:textColor="@android:color/white"
             android:layout_weight="1"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_margin="8dp"/>
+            android:layout_margin="8dp"
+            app:fButtonColor="@color/btnSignActive"
+            android:shadowColor="@color/colorPrimary"
+            app:shadowEnabled="true"
+            app:shadowHeight="5dp"
+            app:cornerRadius="4dp"/>
 
     </LinearLayout>
 

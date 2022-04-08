@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">BeeBuu</string>
+    <string name="app_name">BeeBuuServer</string>
     <string name="slogan">Eat Wherever You Are!</string>
     <string name="title_activity_home">Home</string>
     <string name="action_settings">Settings</string>
