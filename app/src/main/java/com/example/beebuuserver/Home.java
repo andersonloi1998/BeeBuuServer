@@ -65,7 +65,6 @@ public class Home extends AppCompatActivity
     Category newCategory;
 
     Uri saveUri;
-    private final int PICK_IMAGE_REQUEST = 71;
 
     DrawerLayout drawer;
 
@@ -116,7 +115,7 @@ public class Home extends AppCompatActivity
         alertDialog.setMessage("Please fill full information");
 
         LayoutInflater inflater = this.getLayoutInflater();
-        View add_menu_layout = inflater.inflate(R.layout.add_new_menu,null);
+        View add_menu_layout = inflater.inflate(R.layout.add_new_menu_layout,null);
 
         edtName = add_menu_layout.findViewById(R.id.edtName);
         btnSelect = add_menu_layout.findViewById(R.id.btnSelect);
@@ -179,7 +178,7 @@ public class Home extends AppCompatActivity
     @Override
     protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if(requestCode == PICK_IMAGE_REQUEST && resultCode == RESULT_OK
+        if(requestCode == Common.PICK_IMAGE_REQUEST && resultCode == RESULT_OK
         && data != null && data.getData() != null)
         {
             saveUri = data.getData();
@@ -191,7 +190,7 @@ public class Home extends AppCompatActivity
         Intent intent = new Intent();
         intent.setType("image/*");
         intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent,"Select Picture"),PICK_IMAGE_REQUEST);
+        startActivityForResult(Intent.createChooser(intent,"Select Picture"),Common.PICK_IMAGE_REQUEST);
     }
 
     private void loadMenu() {
@@ -208,7 +207,10 @@ public class Home extends AppCompatActivity
                 menuViewHolder.setItemClickListener(new ItemClickListener() {
                     @Override
                     public void onClick(View view, int position, boolean isLongClick) {
-
+                        //Send categoryId and start new activity
+                        Intent foodList = new Intent(Home.this,FoodList.class);
+                        foodList.putExtra("CategoryId",adapter.getRef(position).getKey());
+                        startActivity(foodList);
                     }
                 });
             }
@@ -278,7 +280,7 @@ public class Home extends AppCompatActivity
         alertDialog.setMessage("Please fill full information");
 
         LayoutInflater inflater = this.getLayoutInflater();
-        View add_menu_layout = inflater.inflate(R.layout.add_new_menu,null);
+        View add_menu_layout = inflater.inflate(R.layout.add_new_menu_layout,null);
 
         edtName = add_menu_layout.findViewById(R.id.edtName);
         btnSelect = add_menu_layout.findViewById(R.id.btnSelect);
