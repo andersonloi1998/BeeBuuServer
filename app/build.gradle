@@ -37,6 +37,7 @@ dependencies {
     //crash fix for FButton
     implementation('com.github.jd-alexander:android-flat-button:v1.1')
 
+    implementation 'com.jaredrummler:material-spinner:1.1.0'
     implementation 'com.github.mancj:MaterialSearchBar:0.7.1'
     implementation 'com.amulyakhare:com.amulyakhare.textdrawable:1.0.1'
     implementation 'com.readystatesoftware.sqliteasset:sqliteassethelper:+'
